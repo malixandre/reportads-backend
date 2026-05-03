@@ -1,0 +1,9 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+startCommand = "node dist/main"
+restartPolicyType = "on_failure"
+
+[build.env]
+NIXPACKS_NODE_VERSION = "20"
