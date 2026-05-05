@@ -2,9 +2,9 @@ import { CampaignsService } from './campaigns.service';
 import { PrintFormat } from '@prisma/client';
 declare class CreateCampaignDto {
     name: string;
-    pi: string;
+    pi?: string;
     client: string;
-    agency: string;
+    agency?: string;
     city: string;
     startDate: string;
     endDate: string;

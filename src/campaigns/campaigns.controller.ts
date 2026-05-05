@@ -9,9 +9,9 @@ import { PrintFormat } from '@prisma/client';
 
 class CreateCampaignDto {
   @IsString() name: string;
-  @IsString() pi: string;
+  @IsOptional() @IsString() pi?: string;
   @IsString() client: string;
-  @IsString() agency: string;
+  @IsOptional() @IsString() agency?: string;
   @IsString() city: string;
   @IsDateString() startDate: string;
   @IsDateString() endDate: string;

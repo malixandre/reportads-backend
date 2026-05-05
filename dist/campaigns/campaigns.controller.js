@@ -25,6 +25,7 @@ __decorate([
     __metadata("design:type", String)
 ], CreateCampaignDto.prototype, "name", void 0);
 __decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateCampaignDto.prototype, "pi", void 0);
@@ -33,6 +34,7 @@ __decorate([
     __metadata("design:type", String)
 ], CreateCampaignDto.prototype, "client", void 0);
 __decorate([
+    (0, class_validator_1.IsOptional)(),
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CreateCampaignDto.prototype, "agency", void 0);
