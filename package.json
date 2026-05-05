@@ -2,7 +2,7 @@
   "name": "reportads-backend",
   "version": "1.0.0",
   "scripts": {
-    "build": "npx tsc -p tsconfig.json",
+    "build": "prisma generate && npx tsc -p tsconfig.json",
     "start": "node dist/main",
     "start:dev": "nest start --watch",
     "prisma:generate": "prisma generate",
