@@ -17,12 +17,25 @@ const common_1 = require("@nestjs/common");
 const pdf_service_1 = require("./pdf.service");
 const prisma_service_1 = require("../prisma/prisma.service");
 const jwt_auth_guard_1 = require("../auth/jwt-auth.guard");
+const class_validator_1 = require("class-validator");
+class GeneratePdfDto {
+}
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], GeneratePdfDto.prototype, "clientLogoBase64", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], GeneratePdfDto.prototype, "companyLogoBase64", void 0);
 let PdfController = class PdfController {
     constructor(pdf, prisma) {
         this.pdf = pdf;
         this.prisma = prisma;
     }
-    async generate(req, id) {
+    async generate(req, id, dto) {
         const campaign = await this.prisma.campaign.findUnique({
             where: { id },
             include: {
@@ -43,6 +56,8 @@ let PdfController = class PdfController {
                 ...campaign,
                 totals,
                 ctr: totals.views > 0 ? ((totals.clicks / totals.views) * 100).toFixed(2) : '0.00',
+                clientLogoBase64: dto.clientLogoBase64,
+                companyLogoBase64: dto.companyLogoBase64,
             });
             await this.prisma.report.update({
                 where: { id: report.id },
@@ -64,8 +79,9 @@ __decorate([
     (0, common_1.Post)(':id/generate-pdf'),
     __param(0, (0, common_1.Request)()),
     __param(1, (0, common_1.Param)('id')),
+    __param(2, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [Object, String]),
+    __metadata("design:paramtypes", [Object, String, GeneratePdfDto]),
     __metadata("design:returntype", Promise)
 ], PdfController.prototype, "generate", null);
 exports.PdfController = PdfController = __decorate([

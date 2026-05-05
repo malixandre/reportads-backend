@@ -23,6 +23,8 @@ export interface CampaignData {
         format: string;
         url: string;
     }>;
+    clientLogoBase64?: string;
+    companyLogoBase64?: string;
 }
 export declare class PdfService {
     private readonly logger;
@@ -30,8 +32,10 @@ export declare class PdfService {
     generate(campaign: CampaignData): Promise<string>;
     private formatDate;
     private formatNum;
+    private formatCtr;
     private groupPrintsByDate;
     private buildChartDataScript;
+    private buildHeader;
     private buildDayPages;
     private buildHtml;
 }
