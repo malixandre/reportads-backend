@@ -17,69 +17,35 @@ let CampaignsService = class CampaignsService {
         this.prisma = prisma;
     }
     async create(userId, dto) {
-        return this.prisma.campaign.create({
-            data: {
-                userId,
-                name: dto.name,
-                pi: dto.pi,
-                client: dto.client,
-                agency: dto.agency,
-                city: dto.city,
-                startDate: new Date(dto.startDate),
-                endDate: new Date(dto.endDate),
-            },
-        });
+        return this.prisma.campaign.create({ data: { userId, ...dto, startDate: new Date(dto.startDate), endDate: new Date(dto.endDate) } });
     }
     async findAll(userId) {
         return this.prisma.campaign.findMany({
-            where: { userId },
-            orderBy: { createdAt: 'desc' },
-            include: {
-                _count: { select: { metrics: true, prints: true } },
-                metrics: {
-                    select: { views: true, clicks: true },
-                },
-            },
+            where: { userId }, orderBy: { createdAt: 'desc' },
+            include: { _count: { select: { metrics: true, prints: true } }, metrics: { select: { views: true, clicks: true } } },
         });
     }
     async findOne(userId, id) {
         const campaign = await this.prisma.campaign.findUnique({
             where: { id },
-            include: {
-                metrics: { orderBy: { date: 'asc' } },
-                prints: { orderBy: { date: 'asc' } },
-                reports: { orderBy: { createdAt: 'desc' }, take: 1 },
-            },
+            include: { metrics: { orderBy: { date: 'asc' } }, prints: { orderBy: { date: 'asc' } }, reports: { orderBy: { createdAt: 'desc' }, take: 1 } },
         });
         if (!campaign)
             throw new common_1.NotFoundException('Campanha não encontrada');
         if (campaign.userId !== userId)
             throw new common_1.ForbiddenException();
-        const totals = campaign.metrics.reduce((acc, m) => {
-            acc.views += m.views;
-            acc.clicks += m.clicks;
-            return acc;
-        }, { views: 0, clicks: 0 });
-        return {
-            ...campaign,
-            totals,
-            ctr: totals.views > 0 ? ((totals.clicks / totals.views) * 100).toFixed(2) : '0.00',
-        };
+        const totals = campaign.metrics.reduce((acc, m) => { acc.views += m.views; acc.clicks += m.clicks; return acc; }, { views: 0, clicks: 0 });
+        return { ...campaign, totals, ctr: totals.views > 0 ? ((totals.clicks / totals.views) * 100).toFixed(2) : '0.00' };
     }
     async update(userId, id, dto) {
         await this.assertOwner(userId, id);
-        return this.prisma.campaign.update({
-            where: { id },
-            data: {
-                ...(dto.name && { name: dto.name }),
-                ...(dto.pi && { pi: dto.pi }),
-                ...(dto.client && { client: dto.client }),
-                ...(dto.agency && { agency: dto.agency }),
+        return this.prisma.campaign.update({ where: { id }, data: {
+                ...(dto.name && { name: dto.name }), ...(dto.pi && { pi: dto.pi }),
+                ...(dto.client && { client: dto.client }), ...(dto.agency && { agency: dto.agency }),
                 ...(dto.city && { city: dto.city }),
                 ...(dto.startDate && { startDate: new Date(dto.startDate) }),
                 ...(dto.endDate && { endDate: new Date(dto.endDate) }),
-            },
-        });
+            } });
     }
     async remove(userId, id) {
         await this.assertOwner(userId, id);
@@ -91,10 +57,14 @@ let CampaignsService = class CampaignsService {
         const ops = dto.metrics.map((m) => {
             const date = new Date(m.date);
             const ctr = m.views > 0 ? (m.clicks / m.views) * 100 : 0;
+            const viewsMobile = m.viewsMobile ?? 0;
+            const viewsDesktop = m.viewsDesktop ?? 0;
+            const clicksMobile = m.clicksMobile ?? 0;
+            const clicksDesktop = m.clicksDesktop ?? 0;
             return this.prisma.dayMetric.upsert({
                 where: { campaignId_date: { campaignId, date } },
-                create: { campaignId, date, views: m.views, clicks: m.clicks, ctr },
-                update: { views: m.views, clicks: m.clicks, ctr },
+                create: { campaignId, date, views: m.views, clicks: m.clicks, ctr, viewsMobile, viewsDesktop, clicksMobile, clicksDesktop },
+                update: { views: m.views, clicks: m.clicks, ctr, viewsMobile, viewsDesktop, clicksMobile, clicksDesktop },
             });
         });
         await this.prisma.$transaction(ops);
@@ -102,22 +72,10 @@ let CampaignsService = class CampaignsService {
     }
     async addPrint(userId, campaignId, date, format, url, filename, sizeBytes) {
         await this.assertOwner(userId, campaignId);
-        return this.prisma.print.create({
-            data: {
-                campaignId,
-                date: new Date(date),
-                format,
-                url,
-                filename,
-                sizeBytes,
-            },
-        });
+        return this.prisma.print.create({ data: { campaignId, date: new Date(date), format, url, filename, sizeBytes } });
     }
     async removePrint(userId, printId) {
-        const print = await this.prisma.print.findUnique({
-            where: { id: printId },
-            include: { campaign: true },
-        });
+        const print = await this.prisma.print.findUnique({ where: { id: printId }, include: { campaign: true } });
         if (!print)
             throw new common_1.NotFoundException('Print não encontrado');
         if (print.campaign.userId !== userId)

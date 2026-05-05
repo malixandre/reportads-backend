@@ -9,12 +9,17 @@ interface CreateCampaignDto {
     startDate: string;
     endDate: string;
 }
+interface MetricItemDto {
+    date: string;
+    views: number;
+    clicks: number;
+    viewsMobile?: number;
+    viewsDesktop?: number;
+    clicksMobile?: number;
+    clicksDesktop?: number;
+}
 interface UpsertMetricsDto {
-    metrics: Array<{
-        date: string;
-        views: number;
-        clicks: number;
-    }>;
+    metrics: MetricItemDto[];
 }
 export declare class CampaignsService {
     private prisma;

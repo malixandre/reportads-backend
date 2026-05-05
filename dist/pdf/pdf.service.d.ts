@@ -17,6 +17,10 @@ export interface CampaignData {
         views: number;
         clicks: number;
         ctr: number;
+        viewsMobile: number;
+        viewsDesktop: number;
+        clicksMobile: number;
+        clicksDesktop: number;
     }>;
     prints: Array<{
         date: Date;
@@ -25,16 +29,17 @@ export interface CampaignData {
     }>;
     clientLogoBase64?: string;
     companyLogoBase64?: string;
+    coverColor?: string;
 }
 export declare class PdfService {
     private readonly logger;
     private supabase;
     generate(campaign: CampaignData): Promise<string>;
-    private formatDate;
-    private formatNum;
-    private formatCtr;
+    private fmtDate;
+    private fmtNum;
+    private fmtCtr;
     private groupPrintsByDate;
-    private buildChartDataScript;
+    private buildChartScript;
     private buildHeader;
     private buildDayPages;
     private buildHtml;

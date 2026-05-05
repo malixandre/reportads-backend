@@ -30,6 +30,11 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], GeneratePdfDto.prototype, "companyLogoBase64", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], GeneratePdfDto.prototype, "coverColor", void 0);
 let PdfController = class PdfController {
     constructor(pdf, prisma) {
         this.pdf = pdf;
@@ -38,19 +43,14 @@ let PdfController = class PdfController {
     async generate(req, id, dto) {
         const campaign = await this.prisma.campaign.findUnique({
             where: { id },
-            include: {
-                metrics: { orderBy: { date: 'asc' } },
-                prints: { orderBy: { date: 'asc' } },
-            },
+            include: { metrics: { orderBy: { date: 'asc' } }, prints: { orderBy: { date: 'asc' } } },
         });
         if (!campaign)
             throw new common_1.NotFoundException('Campanha não encontrada');
         if (campaign.userId !== req.user.sub)
             throw new common_1.NotFoundException();
         const totals = campaign.metrics.reduce((acc, m) => { acc.views += m.views; acc.clicks += m.clicks; return acc; }, { views: 0, clicks: 0 });
-        const report = await this.prisma.report.create({
-            data: { campaignId: id, status: 'GENERATING' },
-        });
+        const report = await this.prisma.report.create({ data: { campaignId: id, status: 'GENERATING' } });
         try {
             const pdfUrl = await this.pdf.generate({
                 ...campaign,
@@ -58,18 +58,13 @@ let PdfController = class PdfController {
                 ctr: totals.views > 0 ? ((totals.clicks / totals.views) * 100).toFixed(2) : '0.00',
                 clientLogoBase64: dto.clientLogoBase64,
                 companyLogoBase64: dto.companyLogoBase64,
+                coverColor: dto.coverColor,
             });
-            await this.prisma.report.update({
-                where: { id: report.id },
-                data: { status: 'DONE', pdfUrl },
-            });
+            await this.prisma.report.update({ where: { id: report.id }, data: { status: 'DONE', pdfUrl } });
             return { ok: true, pdfUrl, reportId: report.id };
         }
         catch (err) {
-            await this.prisma.report.update({
-                where: { id: report.id },
-                data: { status: 'FAILED' },
-            });
+            await this.prisma.report.update({ where: { id: report.id }, data: { status: 'FAILED' } });
             throw err;
         }
     }
@@ -87,7 +82,6 @@ __decorate([
 exports.PdfController = PdfController = __decorate([
     (0, common_1.Controller)('campaigns'),
     (0, common_1.UseGuards)(jwt_auth_guard_1.JwtAuthGuard),
-    __metadata("design:paramtypes", [pdf_service_1.PdfService,
-        prisma_service_1.PrismaService])
+    __metadata("design:paramtypes", [pdf_service_1.PdfService, prisma_service_1.PrismaService])
 ], PdfController);
 //# sourceMappingURL=pdf.controller.js.map
