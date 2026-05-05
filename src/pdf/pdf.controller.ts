@@ -1,7 +1,13 @@
-import { Controller, Post, Param, UseGuards, Request, NotFoundException } from '@nestjs/common';
+import { Controller, Post, Param, UseGuards, Request, NotFoundException, Body } from '@nestjs/common';
 import { PdfService } from './pdf.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { IsOptional, IsString } from 'class-validator';
+
+class GeneratePdfDto {
+  @IsOptional() @IsString() clientLogoBase64?: string;
+  @IsOptional() @IsString() companyLogoBase64?: string;
+}
 
 @Controller('campaigns')
 @UseGuards(JwtAuthGuard)
@@ -12,7 +18,11 @@ export class PdfController {
   ) {}
 
   @Post(':id/generate-pdf')
-  async generate(@Request() req, @Param('id') id: string) {
+  async generate(
+    @Request() req,
+    @Param('id') id: string,
+    @Body() dto: GeneratePdfDto,
+  ) {
     const campaign = await this.prisma.campaign.findUnique({
       where: { id },
       include: {
@@ -38,6 +48,8 @@ export class PdfController {
         ...campaign,
         totals,
         ctr: totals.views > 0 ? ((totals.clicks / totals.views) * 100).toFixed(2) : '0.00',
+        clientLogoBase64: dto.clientLogoBase64,
+        companyLogoBase64: dto.companyLogoBase64,
       });
 
       await this.prisma.report.update({
