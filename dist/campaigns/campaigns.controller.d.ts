@@ -30,7 +30,6 @@ export declare class CampaignsController {
     create(req: any, dto: CreateCampaignDto): Promise<{
         id: string;
         name: string;
-        createdAt: Date;
         pi: string;
         client: string;
         agency: string;
@@ -38,22 +37,22 @@ export declare class CampaignsController {
         startDate: Date;
         endDate: Date;
         status: import(".prisma/client").$Enums.CampaignStatus;
+        createdAt: Date;
         updatedAt: Date;
         userId: string;
     }>;
     findAll(req: any): Promise<({
-        _count: {
-            metrics: number;
-            prints: number;
-        };
         metrics: {
             views: number;
             clicks: number;
         }[];
+        _count: {
+            metrics: number;
+            prints: number;
+        };
     } & {
         id: string;
         name: string;
-        createdAt: Date;
         pi: string;
         client: string;
         agency: string;
@@ -61,6 +60,7 @@ export declare class CampaignsController {
         startDate: Date;
         endDate: Date;
         status: import(".prisma/client").$Enums.CampaignStatus;
+        createdAt: Date;
         updatedAt: Date;
         userId: string;
     })[]>;
@@ -91,14 +91,13 @@ export declare class CampaignsController {
         }[];
         reports: {
             id: string;
-            createdAt: Date;
             status: import(".prisma/client").$Enums.ReportStatus;
+            createdAt: Date;
             campaignId: string;
             pdfUrl: string | null;
         }[];
         id: string;
         name: string;
-        createdAt: Date;
         pi: string;
         client: string;
         agency: string;
@@ -106,13 +105,13 @@ export declare class CampaignsController {
         startDate: Date;
         endDate: Date;
         status: import(".prisma/client").$Enums.CampaignStatus;
+        createdAt: Date;
         updatedAt: Date;
         userId: string;
     }>;
     update(req: any, id: string, dto: Partial<CreateCampaignDto>): Promise<{
         id: string;
         name: string;
-        createdAt: Date;
         pi: string;
         client: string;
         agency: string;
@@ -120,6 +119,7 @@ export declare class CampaignsController {
         startDate: Date;
         endDate: Date;
         status: import(".prisma/client").$Enums.CampaignStatus;
+        createdAt: Date;
         updatedAt: Date;
         userId: string;
     }>;

@@ -52,8 +52,19 @@ let PdfController = class PdfController {
         const totals = campaign.metrics.reduce((acc, m) => { acc.views += m.views; acc.clicks += m.clicks; return acc; }, { views: 0, clicks: 0 });
         const report = await this.prisma.report.create({ data: { campaignId: id, status: 'GENERATING' } });
         try {
+            const metricsNormalized = campaign.metrics.map((m) => ({
+                date: m.date,
+                views: m.views,
+                clicks: m.clicks,
+                ctr: m.ctr,
+                viewsMobile: m.viewsMobile ?? 0,
+                viewsDesktop: m.viewsDesktop ?? 0,
+                clicksMobile: m.clicksMobile ?? 0,
+                clicksDesktop: m.clicksDesktop ?? 0,
+            }));
             const pdfUrl = await this.pdf.generate({
                 ...campaign,
+                metrics: metricsNormalized,
                 totals,
                 ctr: totals.views > 0 ? ((totals.clicks / totals.views) * 100).toFixed(2) : '0.00',
                 clientLogoBase64: dto.clientLogoBase64,

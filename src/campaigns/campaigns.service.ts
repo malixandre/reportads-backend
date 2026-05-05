@@ -67,7 +67,7 @@ export class CampaignsService {
       const viewsDesktop = m.viewsDesktop ?? 0;
       const clicksMobile = m.clicksMobile ?? 0;
       const clicksDesktop = m.clicksDesktop ?? 0;
-      return this.prisma.dayMetric.upsert({
+      return (this.prisma.dayMetric as any).upsert({
         where: { campaignId_date: { campaignId, date } },
         create: { campaignId, date, views: m.views, clicks: m.clicks, ctr, viewsMobile, viewsDesktop, clicksMobile, clicksDesktop },
         update: { views: m.views, clicks: m.clicks, ctr, viewsMobile, viewsDesktop, clicksMobile, clicksDesktop },
