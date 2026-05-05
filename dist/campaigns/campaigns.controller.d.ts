@@ -27,33 +27,20 @@ declare class AddPrintDto {
 export declare class CampaignsController {
     private svc;
     constructor(svc: CampaignsService);
-    create(req: any, dto: CreateCampaignDto): Promise<{
-        id: string;
-        name: string;
-        createdAt: Date;
-        pi: string;
-        client: string;
-        agency: string;
-        city: string;
-        startDate: Date;
-        endDate: Date;
-        status: import(".prisma/client").$Enums.CampaignStatus;
-        updatedAt: Date;
-        userId: string;
-    }>;
+    create(req: any, dto: CreateCampaignDto): Promise<any>;
     findAll(req: any): Promise<({
-        _count: {
-            metrics: number;
-            prints: number;
-        };
         metrics: {
             views: number;
             clicks: number;
         }[];
+        _count: {
+            metrics: number;
+            prints: number;
+        };
     } & {
         id: string;
+        userId: string;
         name: string;
-        createdAt: Date;
         pi: string;
         client: string;
         agency: string;
@@ -61,8 +48,8 @@ export declare class CampaignsController {
         startDate: Date;
         endDate: Date;
         status: import(".prisma/client").$Enums.CampaignStatus;
+        createdAt: Date;
         updatedAt: Date;
-        userId: string;
     })[]>;
     findOne(req: any, id: string): Promise<{
         totals: {
@@ -91,14 +78,14 @@ export declare class CampaignsController {
         }[];
         reports: {
             id: string;
-            createdAt: Date;
             status: import(".prisma/client").$Enums.ReportStatus;
+            createdAt: Date;
             campaignId: string;
             pdfUrl: string | null;
         }[];
         id: string;
+        userId: string;
         name: string;
-        createdAt: Date;
         pi: string;
         client: string;
         agency: string;
@@ -106,13 +93,13 @@ export declare class CampaignsController {
         startDate: Date;
         endDate: Date;
         status: import(".prisma/client").$Enums.CampaignStatus;
+        createdAt: Date;
         updatedAt: Date;
-        userId: string;
     }>;
     update(req: any, id: string, dto: Partial<CreateCampaignDto>): Promise<{
         id: string;
+        userId: string;
         name: string;
-        createdAt: Date;
         pi: string;
         client: string;
         agency: string;
@@ -120,8 +107,8 @@ export declare class CampaignsController {
         startDate: Date;
         endDate: Date;
         status: import(".prisma/client").$Enums.CampaignStatus;
+        createdAt: Date;
         updatedAt: Date;
-        userId: string;
     }>;
     remove(req: any, id: string): Promise<{
         ok: boolean;

@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { PrintFormat } from '@prisma/client';
 
 interface CreateCampaignDto {
-  name: string; pi: string; client: string; agency: string; city: string;
+  name: string; pi?: string; client: string; agency?: string; city: string;
   startDate: string; endDate: string;
 }
 
@@ -20,7 +20,7 @@ export class CampaignsService {
   constructor(private prisma: PrismaService) {}
 
   async create(userId: string, dto: CreateCampaignDto) {
-    return this.prisma.campaign.create({ data: { userId, ...dto, startDate: new Date(dto.startDate), endDate: new Date(dto.endDate) } });
+    return (this.prisma.campaign as any).create({ data: { userId, ...dto, startDate: new Date(dto.startDate), endDate: new Date(dto.endDate) } });
   }
 
   async findAll(userId: string) {
