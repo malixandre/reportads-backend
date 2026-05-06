@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "scripts": {
     "build": "prisma generate && npx tsc -p tsconfig.json",
-    "start": "node dist/main",
+    "start": "prisma generate && node dist/main",
     "start:dev": "nest start --watch",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate deploy"
