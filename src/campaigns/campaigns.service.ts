@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { PrintFormat } from '@prisma/client';
 
 interface CreateCampaignDto {
-  name: string; pi: string; client: string; agency: string; city: string;
+  name: string; pi?: string; client: string; agency?: string; city: string;
   startDate: string; endDate: string;
 }
 
@@ -20,7 +20,7 @@ export class CampaignsService {
   constructor(private prisma: PrismaService) {}
 
   async create(userId: string, dto: CreateCampaignDto) {
-    return this.prisma.campaign.create({ data: { userId, ...dto, startDate: new Date(dto.startDate), endDate: new Date(dto.endDate) } });
+    return (this.prisma.campaign as any).create({ data: { userId, ...dto, startDate: new Date(dto.startDate), endDate: new Date(dto.endDate) } });
   }
 
   async findAll(userId: string) {
@@ -63,18 +63,11 @@ export class CampaignsService {
     const ops = dto.metrics.map((m) => {
       const date = new Date(m.date);
       const ctr = m.views > 0 ? (m.clicks / m.views) * 100 : 0;
-      const viewsMobile = m.viewsMobile ?? 0;
-      const viewsDesktop = m.viewsDesktop ?? 0;
-      const clicksMobile = m.clicksMobile ?? 0;
-      const clicksDesktop = m.clicksDesktop ?? 0;
-      return this.prisma.$executeRaw`
-        INSERT INTO "DayMetric" (id, "campaignId", date, views, clicks, ctr, "viewsMobile", "viewsDesktop", "clicksMobile", "clicksDesktop", "createdAt")
-        VALUES (gen_random_uuid()::text, ${campaignId}, ${date}, ${m.views}, ${m.clicks}, ${ctr}, ${viewsMobile}, ${viewsDesktop}, ${clicksMobile}, ${clicksDesktop}, NOW())
-        ON CONFLICT ("campaignId", date) DO UPDATE SET
-          views = EXCLUDED.views, clicks = EXCLUDED.clicks, ctr = EXCLUDED.ctr,
-          "viewsMobile" = EXCLUDED."viewsMobile", "viewsDesktop" = EXCLUDED."viewsDesktop",
-          "clicksMobile" = EXCLUDED."clicksMobile", "clicksDesktop" = EXCLUDED."clicksDesktop"
-      `;
+      return this.prisma.dayMetric.upsert({
+        where: { campaignId_date: { campaignId, date } },
+        create: { campaignId, date, views: m.views, clicks: m.clicks, ctr },
+        update: { views: m.views, clicks: m.clicks, ctr },
+      });
     });
     await this.prisma.$transaction(ops);
     return { ok: true, count: ops.length };
