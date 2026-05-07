@@ -149,12 +149,9 @@ export class PdfService {
     const chartScript = this.buildChartScript(campaign.metrics, accentColor);
 
     const companyLogoBlock = campaign.companyLogoBase64
-      ? `<img src="${campaign.companyLogoBase64}" style="max-height:36px;max-width:130px;object-fit:contain;" />`
+      ? `<img src="${campaign.companyLogoBase64}" style="max-height:56px;max-width:200px;object-fit:contain;" />`
       : `<span style="font-size:14px;font-weight:800;color:${accentColor};letter-spacing:-0.02em;">ReportAds</span>`;
 
-    const clientLogoBlock = campaign.clientLogoBase64
-      ? `<img src="${campaign.clientLogoBase64}" style="max-height:52px;max-width:160px;object-fit:contain;" />`
-      : `<span style="font-size:16px;font-weight:700;color:#111;">${campaign.client}</span>`;
 
     const metricsRows = campaign.metrics.map((m, i) => `
       <tr>
@@ -182,10 +179,9 @@ export class PdfService {
 ═══════════════════════════════════════════════ -->
 <div style="width:210mm;min-height:297mm;page-break-after:always;display:flex;flex-direction:column;background:#fff;">
 
-  <!-- TOP BAR: empresa + cliente -->
-  <div style="display:flex;align-items:center;justify-content:space-between;padding:20px 32px 18px;border-bottom:1px solid #F0F0F0;">
+  <!-- TOP BAR: logo empresa centralizada -->
+  <div style="display:flex;align-items:center;justify-content:center;padding:28px 32px 24px;border-bottom:2px solid ${accentColor};">
     <div>${companyLogoBlock}</div>
-    <div style="text-align:right;">${clientLogoBlock}</div>
   </div>
 
   <!-- HERO: título + período com linha de cor -->
