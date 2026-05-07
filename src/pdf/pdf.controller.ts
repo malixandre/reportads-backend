@@ -17,6 +17,7 @@ export class PdfController {
 
   @Post(':id/generate-pdf')
   async generate(@Request() req, @Param('id') id: string, @Body() dto: GeneratePdfDto) {
+    // 1. Busca todos os dados ANTES de gerar o PDF
     const campaign = await this.prisma.campaign.findUnique({
       where: { id },
       include: { metrics: { orderBy: { date: 'asc' } }, prints: { orderBy: { date: 'asc' } } },
@@ -30,35 +31,41 @@ export class PdfController {
     );
 
     const report = await this.prisma.report.create({ data: { campaignId: id, status: 'GENERATING' } });
+    const reportId = report.id;
 
+    const metricsNormalized = campaign.metrics.map((m: any) => ({
+      date: m.date, views: m.views, clicks: m.clicks, ctr: m.ctr,
+      viewsMobile: m.viewsMobile ?? 0, viewsDesktop: m.viewsDesktop ?? 0,
+      clicksMobile: m.clicksMobile ?? 0, clicksDesktop: m.clicksDesktop ?? 0,
+    }));
+
+    const campaignData = {
+      ...campaign,
+      metrics: metricsNormalized,
+      totals,
+      ctr: totals.views > 0 ? ((totals.clicks / totals.views) * 100).toFixed(2) : '0.00',
+      clientLogoBase64: dto.clientLogoBase64,
+      companyLogoBase64: dto.companyLogoBase64,
+      coverColor: dto.coverColor,
+    };
+
+    // 2. Desconecta Prisma antes do Puppeteer para liberar conexões
+    await this.prisma.$disconnect();
+
+    let pdfUrl: string;
     try {
-      // Normaliza métricas adicionando campos mobile/desktop com fallback 0
-      const metricsNormalized = campaign.metrics.map((m: any) => ({
-        date: m.date,
-        views: m.views,
-        clicks: m.clicks,
-        ctr: m.ctr,
-        viewsMobile: m.viewsMobile ?? 0,
-        viewsDesktop: m.viewsDesktop ?? 0,
-        clicksMobile: m.clicksMobile ?? 0,
-        clicksDesktop: m.clicksDesktop ?? 0,
-      }));
-
-      const pdfUrl = await this.pdf.generate({
-        ...campaign,
-        metrics: metricsNormalized,
-        totals,
-        ctr: totals.views > 0 ? ((totals.clicks / totals.views) * 100).toFixed(2) : '0.00',
-        clientLogoBase64: dto.clientLogoBase64,
-        companyLogoBase64: dto.companyLogoBase64,
-        coverColor: dto.coverColor,
-      });
-
-      await this.prisma.report.update({ where: { id: report.id }, data: { status: 'DONE', pdfUrl } });
-      return { ok: true, pdfUrl, reportId: report.id };
+      // 3. Gera PDF (operação longa)
+      pdfUrl = await this.pdf.generate(campaignData);
     } catch (err) {
-      await this.prisma.report.update({ where: { id: report.id }, data: { status: 'FAILED' } });
+      // 4. Reconecta e atualiza status
+      await this.prisma.$connect();
+      await this.prisma.report.update({ where: { id: reportId }, data: { status: 'FAILED' } });
       throw err;
     }
+
+    // 5. Reconecta e salva URL
+    await this.prisma.$connect();
+    await this.prisma.report.update({ where: { id: reportId }, data: { status: 'DONE', pdfUrl } });
+    return { ok: true, pdfUrl, reportId };
   }
 }
