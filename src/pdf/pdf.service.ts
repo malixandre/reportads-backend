@@ -142,12 +142,13 @@ export class PdfService {
     const dayPages = this.buildDayPages(campaign.metrics, printsByDate, campaign, accentColor);
     const chartScript = this.buildChartScript(campaign.metrics, accentColor);
 
+    // Logos
     const companyLogoHtml = campaign.companyLogoBase64
-      ? `<img src="${campaign.companyLogoBase64}" style="max-height:40px;max-width:130px;object-fit:contain;" />`
-      : `<div style="font-size:13px;font-weight:700;letter-spacing:0.06em;color:${accentColor};">ReportAds</div>`;
+      ? `<img src="${campaign.companyLogoBase64}" style="max-height:44px;max-width:140px;object-fit:contain;" />`
+      : `<div style="font-size:14px;font-weight:700;color:${accentColor};letter-spacing:0.05em;">ReportAds</div>`;
 
     const clientLogoHtml = campaign.clientLogoBase64
-      ? `<img src="${campaign.clientLogoBase64}" style="max-height:70px;max-width:180px;object-fit:contain;" />`
+      ? `<img src="${campaign.clientLogoBase64}" style="max-height:44px;max-width:140px;object-fit:contain;" />`
       : '';
 
     const metricsTableRows = campaign.metrics.map((m, i) => `
@@ -167,77 +168,81 @@ export class PdfService {
 </head>
 <body>
 
-<!-- CAPA: layout split - barra colorida à esquerda, conteúdo à direita -->
-<div style="width:210mm;min-height:297mm;page-break-after:always;display:grid;grid-template-columns:72px 1fr;">
+<!-- CAPA A4 retrato -->
+<div style="width:210mm;min-height:297mm;page-break-after:always;display:flex;flex-direction:column;background:#fff;">
 
-  <!-- Barra lateral colorida -->
-  <div style="background:${accentColor};display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:28px 0;">
-    <div style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:9px;font-weight:700;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.7);">Relatório de Campanha</div>
-    <div style="width:32px;height:3px;background:rgba(255,255,255,0.4);border-radius:2px;"></div>
-    <div style="writing-mode:vertical-rl;transform:rotate(180deg);font-size:8px;color:rgba(255,255,255,0.5);">${this.fmtDate(campaign.startDate)} — ${this.fmtDate(campaign.endDate)}</div>
+  <!-- 1. HEADER: logos empresa + cliente -->
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:24px 32px;border-bottom:1px solid #EEEEEE;">
+    <div>${companyLogoHtml}</div>
+    ${clientLogoHtml ? `<div>${clientLogoHtml}</div>` : '<div></div>'}
   </div>
 
-  <!-- Conteúdo principal -->
-  <div style="background:#fff;display:flex;flex-direction:column;padding:0;">
+  <!-- 2. BLOCO DESTAQUE: dados da campanha com cor de fundo -->
+  <div style="background:${accentColor};padding:28px 32px;">
+    <div style="font-size:10px;font-weight:700;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.65);margin-bottom:8px;">Relatório de Campanha</div>
+    <div style="font-size:26px;font-weight:700;color:#fff;line-height:1.2;margin-bottom:6px;">${campaign.name}</div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.8);margin-bottom:20px;">${this.fmtDate(campaign.startDate)} — ${this.fmtDate(campaign.endDate)}</div>
 
-    <!-- Header com logos -->
-    <div style="padding:28px 28px 20px;border-bottom:1px solid #F0F0F0;display:flex;align-items:center;justify-content:space-between;">
-      <div>${companyLogoHtml}</div>
-      ${clientLogoHtml ? `<div>${clientLogoHtml}</div>` : ''}
-    </div>
-
-    <!-- Título campanha -->
-    <div style="padding:28px 28px 20px;border-bottom:1px solid #F0F0F0;">
-      <div style="font-size:22px;font-weight:700;color:#111;line-height:1.25;margin-bottom:8px;">${campaign.name}</div>
-      <div style="font-size:11px;color:#888;">${this.fmtDate(campaign.startDate)} — ${this.fmtDate(campaign.endDate)}</div>
-    </div>
-
-    <!-- KPIs -->
-    <div style="padding:20px 28px;display:grid;grid-template-columns:repeat(3,1fr);gap:12px;border-bottom:1px solid #F0F0F0;">
-      <div style="padding:14px;border-radius:8px;border:2px solid ${accentColor};background:#fff;">
-        <div style="font-size:8px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px;">Total Views</div>
-        <div style="font-size:22px;font-weight:700;color:${accentColor};">${this.fmtNum(campaign.totals.views)}</div>
+    <!-- Dados da campanha em destaque -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+      <div style="background:rgba(255,255,255,0.15);border-radius:6px;padding:10px 14px;">
+        <div style="font-size:8px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px;">Cliente</div>
+        <div style="font-size:13px;font-weight:700;color:#fff;">${campaign.client}</div>
       </div>
-      <div style="padding:14px;border-radius:8px;border:1px solid #E8E8E8;background:#FAFAFA;">
-        <div style="font-size:8px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px;">Total Cliques</div>
-        <div style="font-size:22px;font-weight:700;color:#333;">${this.fmtNum(campaign.totals.clicks)}</div>
+      ${campaign.agency ? `
+      <div style="background:rgba(255,255,255,0.15);border-radius:6px;padding:10px 14px;">
+        <div style="font-size:8px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px;">Agência</div>
+        <div style="font-size:13px;font-weight:700;color:#fff;">${campaign.agency}</div>
+      </div>` : '<div></div>'}
+      <div style="background:rgba(255,255,255,0.15);border-radius:6px;padding:10px 14px;">
+        <div style="font-size:8px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px;">PI</div>
+        <div style="font-size:13px;font-weight:700;color:#fff;">${campaign.pi || '—'}</div>
       </div>
-      <div style="padding:14px;border-radius:8px;border:1px solid #E8E8E8;background:#FAFAFA;">
-        <div style="font-size:8px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px;">CTR Médio</div>
-        <div style="font-size:22px;font-weight:700;color:#333;">${this.fmtCtr(campaign.totals.views, campaign.totals.clicks)}</div>
+      <div style="background:rgba(255,255,255,0.15);border-radius:6px;padding:10px 14px;">
+        <div style="font-size:8px;font-weight:700;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:3px;">Praça</div>
+        <div style="font-size:13px;font-weight:700;color:#fff;">${campaign.city}</div>
       </div>
-    </div>
-
-    <!-- Gráfico -->
-    <div style="padding:20px 28px;border-bottom:1px solid #F0F0F0;">
-      <div style="font-size:9px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">Desempenho diário</div>
-      <div style="height:140px;position:relative;"><canvas id="perf-chart"></canvas></div>
-    </div>
-
-    <!-- Tabela resumo -->
-    <div style="padding:20px 28px;flex:1;">
-      <div style="font-size:9px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">Resumo por dia</div>
-      <table style="width:100%;border-collapse:collapse;border-radius:8px;overflow:hidden;border:1px solid #F0F0F0;">
-        <thead>
-          <tr style="background:${accentColor};">
-            <th style="padding:8px 10px;text-align:left;font-size:8px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:0.05em;">Data</th>
-            <th style="padding:8px 10px;text-align:left;font-size:8px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:0.05em;">Views</th>
-            <th style="padding:8px 10px;text-align:left;font-size:8px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:0.05em;">Cliques</th>
-            <th style="padding:8px 10px;text-align:left;font-size:8px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:0.05em;">CTR</th>
-          </tr>
-        </thead>
-        <tbody>${metricsTableRows}</tbody>
-      </table>
-    </div>
-
-    <!-- Rodapé com dados da campanha -->
-    <div style="padding:16px 28px;background:#F8F9FA;border-top:3px solid ${accentColor};display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-      <div style="font-size:10px;color:#555;"><strong style="color:#111;">Cliente:</strong> ${campaign.client}</div>
-      ${campaign.agency ? `<div style="font-size:10px;color:#555;"><strong style="color:#111;">Agência:</strong> ${campaign.agency}</div>` : '<div></div>'}
-      <div style="font-size:10px;color:#555;"><strong style="color:#111;">PI:</strong> ${campaign.pi || '—'}</div>
-      <div style="font-size:10px;color:#555;"><strong style="color:#111;">Praça:</strong> ${campaign.city}</div>
     </div>
   </div>
+
+  <!-- 3. KPIs -->
+  <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:0;border-bottom:1px solid #EEEEEE;">
+    <div style="padding:18px 24px;border-right:1px solid #EEEEEE;">
+      <div style="font-size:8px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px;">Total Views</div>
+      <div style="font-size:24px;font-weight:700;color:${accentColor};">${this.fmtNum(campaign.totals.views)}</div>
+    </div>
+    <div style="padding:18px 24px;border-right:1px solid #EEEEEE;">
+      <div style="font-size:8px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px;">Total Cliques</div>
+      <div style="font-size:24px;font-weight:700;color:#333;">${this.fmtNum(campaign.totals.clicks)}</div>
+    </div>
+    <div style="padding:18px 24px;">
+      <div style="font-size:8px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:4px;">CTR Médio</div>
+      <div style="font-size:24px;font-weight:700;color:#333;">${this.fmtCtr(campaign.totals.views, campaign.totals.clicks)}</div>
+    </div>
+  </div>
+
+  <!-- 4. GRÁFICO -->
+  <div style="padding:20px 32px;border-bottom:1px solid #EEEEEE;">
+    <div style="font-size:9px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">Desempenho diário</div>
+    <div style="height:130px;position:relative;"><canvas id="perf-chart"></canvas></div>
+  </div>
+
+  <!-- 5. TABELA RESUMO -->
+  <div style="padding:20px 32px;flex:1;">
+    <div style="font-size:9px;font-weight:700;color:#999;text-transform:uppercase;letter-spacing:0.07em;margin-bottom:10px;">Resumo por dia</div>
+    <table style="width:100%;border-collapse:collapse;border:1px solid #EEEEEE;border-radius:6px;overflow:hidden;">
+      <thead>
+        <tr style="background:${accentColor};">
+          <th style="padding:8px 10px;text-align:left;font-size:8px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:0.05em;">Data</th>
+          <th style="padding:8px 10px;text-align:left;font-size:8px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:0.05em;">Views</th>
+          <th style="padding:8px 10px;text-align:left;font-size:8px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:0.05em;">Cliques</th>
+          <th style="padding:8px 10px;text-align:left;font-size:8px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:0.05em;">CTR</th>
+        </tr>
+      </thead>
+      <tbody>${metricsTableRows}</tbody>
+    </table>
+  </div>
+
 </div>
 
 <!-- PÁGINAS POR DIA -->
