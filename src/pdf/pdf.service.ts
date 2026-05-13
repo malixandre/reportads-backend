@@ -23,7 +23,9 @@ export class PdfService {
       const page = await browser.newPage();
       await page.setContent(this.buildHtml(campaign), { waitUntil: 'networkidle0' });
       await page.evaluateHandle('document.fonts.ready');
-      const pdfBuffer = await page.pdf({ format: 'A4', landscape: false, printBackground: true, margin: { top: '0', right: '0', bottom: '0', left: '0' } });
+      // Reduz escala para diminuir tamanho do PDF
+      await page.setViewport({ width: 794, height: 1123, deviceScaleFactor: 1 });
+      const pdfBuffer = await page.pdf({ format: 'A4', landscape: false, printBackground: true, margin: { top: '0', right: '0', bottom: '0', left: '0' }, scale: 0.85 });
       const filename = `reports/${campaign.id}/${Date.now()}.pdf`;
       const { error } = await this.supabase.storage.from('reports').upload(filename, pdfBuffer, { contentType: 'application/pdf', upsert: true });
       if (error) throw new Error('Erro ao salvar PDF: ' + error.message);
@@ -95,10 +97,10 @@ export class PdfService {
       const noImg = `<div style="display:flex;align-items:center;justify-content:center;height:80px;border:1.5px dashed #E0E0E0;border-radius:6px;"><span style="font-size:10px;color:#CCC;">Sem print</span></div>`;
 
       const mobileHtml = prints.MOBILE.length
-        ? prints.MOBILE.map((url) => `<img src="${url}" style="width:100%;border-radius:6px;border:1px solid #EBEBEB;object-fit:contain;margin-bottom:8px;display:block;" />`).join('')
+        ? prints.MOBILE.map((url) => `<img src="${url}" style="width:100%;max-height:320px;border-radius:6px;border:1px solid #EBEBEB;object-fit:contain;margin-bottom:8px;display:block;" />`).join('')
         : noImg;
       const desktopHtml = prints.DESKTOP.length
-        ? prints.DESKTOP.map((url) => `<img src="${url}" style="width:100%;border-radius:6px;border:1px solid #EBEBEB;object-fit:contain;margin-bottom:8px;display:block;" />`).join('')
+        ? prints.DESKTOP.map((url) => `<img src="${url}" style="width:100%;max-height:320px;border-radius:6px;border:1px solid #EBEBEB;object-fit:contain;margin-bottom:8px;display:block;" />`).join('')
         : noImg;
 
       return `
@@ -165,11 +167,12 @@ export class PdfService {
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<!-- sem fontes externas -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.2/dist/chart.umd.min.js"></script>
 <style>
   * { margin:0; padding:0; box-sizing:border-box; }
-  body { font-family:'Inter','Segoe UI',Arial,sans-serif; background:#fff; -webkit-print-color-adjust:exact; }
+  body { font-family:'Segoe UI',Arial,sans-serif; background:#fff; -webkit-print-color-adjust:exact; }
+  img { image-rendering: -webkit-optimize-contrast; }
 </style>
 </head>
 <body>
